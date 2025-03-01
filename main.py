@@ -2,8 +2,9 @@ import logging
 import os
 from dotenv import load_dotenv
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, filters,  MessageHandler
-
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+from google import genai
+from google.genai import types
 import mysql.connector
 
 # loading secrets
@@ -24,7 +25,8 @@ conn = mysql.connector.connect(
     database = MYSQL_DB_NAME
 )
 
-
+# gemini client 
+gemini_client = genai.Client(api_key = GEMINI_KEY)
 
 # logging configuration
 logging.basicConfig(
@@ -34,7 +36,10 @@ logging.basicConfig(
 
 # /start command 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="I'm a bot, please talk to me!\nUse /gemini and type your Query...\nHappy to Help!"
+    )
 
 # /caps command
 async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE): 
@@ -86,6 +91,24 @@ def remove_all_db(user_id: int):
         sql = f"DELETE FROM notes WHERE user_id = {user_id}"
         cursor.execute(sql)
         conn.commit()
+
+# /gemini command 
+async def ask_gemini(update: Update, context: ContextTypes.DEFAULT_TYPE): 
+    user_prompt = (' '.join(context.args)).strip()
+    system_prompt = f"""Hi, My name is {update.effective_chat.first_name} and I'm curious about few things,
+        can you please, give me a short and concise answer about the following topic, 
+        also, keeep the language frank, you can roast me for my dumbness, but don't be abusive."""
+    
+    response = gemini_client.models.generate_content(
+        model = "gemini-2.0-flash",
+        config = types.GenerateContentConfig(
+            system_instruction = system_prompt,
+            temperature=0.6
+        ),
+        contents =  user_prompt
+    )
+
+    await context.bot.send_message(update.effective_chat.id, response.text)
     
 # main method
 if __name__ == '__main__':
@@ -95,7 +118,7 @@ if __name__ == '__main__':
     add_handler = CommandHandler('add', add_entry)
     get_handler = CommandHandler('get', get_entries)
     remove_handler = CommandHandler('clear', remove_entries)
-
+    gemini_handler = CommandHandler('gemini', ask_gemini)
     caps_handler = CommandHandler('caps', caps)
 
     # add the handlers
@@ -104,7 +127,8 @@ if __name__ == '__main__':
         add_handler,
         get_handler,
         remove_handler,
-        caps_handler
+        caps_handler, 
+        gemini_handler
     ])
 
     # start the bot
