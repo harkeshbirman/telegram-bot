@@ -92,7 +92,7 @@ def remove_all_db(user_id: int):
         cursor.execute(sql)
         conn.commit()
 
-# /gemini command 
+# /g command 
 async def ask_gemini(update: Update, context: ContextTypes.DEFAULT_TYPE): 
     user_prompt = (' '.join(context.args)).strip()
     system_prompt = f"""Hi, My name is {update.effective_chat.first_name} and I'm curious about few things,
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     add_handler = CommandHandler('add', add_entry)
     get_handler = CommandHandler('get', get_entries)
     remove_handler = CommandHandler('clear', remove_entries)
-    gemini_handler = CommandHandler('gemini', ask_gemini)
+    gemini_handler = CommandHandler('g', ask_gemini)
     caps_handler = CommandHandler('caps', caps)
 
     # add the handlers
