@@ -13,6 +13,5 @@ echo "Installing dependencies with Poetry..."
 poetry install --no-root
 
 # Activate virtual environment and run your main file
-# Adjust 'your_script.py' below to your real entry point
 echo "Running the project..."
 poetry run python main.py
