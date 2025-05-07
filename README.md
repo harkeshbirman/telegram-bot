@@ -1,6 +1,6 @@
 # Telegram Bot for using google-gemini
 
-## Plesae ensure the following before starting the application:
+## Please ensure the following before starting the application:
 
 - `poetry` should be installed on your system
 - `mysql` should be running on port `3306`
